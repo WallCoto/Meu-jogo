@@ -3,49 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Overlord 2D - As 100 Câmaras do Supremo</title>
+    <title>Overlord 2D - Mobile Edition</title>
     <style>
         * {
             box-sizing: border-box;
             touch-action: none;
             -webkit-touch-callout: none;
             -webkit-user-select: none;
+            user-select: none;
         }
         body {
             margin: 0;
             padding: 0;
             background-color: #040508;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
             color: #ecf0f1;
-            font-family: 'Cinzel', 'Segoe UI', serif;
-            user-select: none;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
             overflow: hidden;
         }
+        #game-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 960px;
+            max-height: 576px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            background-color: #080c14;
+            image-rendering: pixelated;
+        }
+
+        /* HUD SUPERIOR TRANSLÚCIDO */
         #hud {
             display: none;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 4px;
-            font-size: 11px;
-            max-width: 960px;
-            width: 95%;
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 96%;
             justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            z-index: 20;
+            pointer-events: none;
         }
-        .barra-container {
+        .hud-left, .hud-right {
             display: flex;
-            flex-direction: column;
-            gap: 2px;
+            align-items: center;
+            gap: 6px;
+            pointer-events: auto;
         }
         .barra-fundo {
-            width: 140px;
+            width: 120px;
             height: 12px;
-            background-color: #1e272e;
+            background-color: rgba(30, 39, 46, 0.8);
             border: 1px solid #485460;
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
             position: relative;
         }
@@ -53,12 +75,6 @@
             height: 100%;
             background: linear-gradient(90deg, #c0392b, #e74c3c);
             width: 100%;
-            transition: width 0.15s ease-out;
-        }
-        .barra-xp {
-            height: 100%;
-            background: linear-gradient(90deg, #f39c12, #f1c40f);
-            width: 0%;
             transition: width 0.15s ease-out;
         }
         .barra-texto {
@@ -71,84 +87,80 @@
             text-align: center;
             font-weight: bold;
             color: #fff;
-            text-shadow: 1px 1px 2px #000;
         }
-        .hud-item {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 4px 8px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .hud-pill {
+            background: rgba(10, 15, 25, 0.75);
+            padding: 3px 7px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 10px;
         }
         .btn-ui {
-            background-color: #2c3e50;
-            color: #ecf0f1;
+            background: rgba(44, 62, 80, 0.85);
+            color: #fff;
             border: 1px solid #74b9ff;
             padding: 4px 8px;
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-family: inherit;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
         }
-        #area-canvas {
-            position: relative;
-            max-width: 960px;
-            width: 95%;
-            aspect-ratio: 960 / 576;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        canvas {
-            width: 100%;
-            height: 100%;
-            border: 2px solid #2d132c;
-            background-color: #080c14;
-            box-shadow: 0 0 35px rgba(0, 0, 0, 0.95);
-            image-rendering: pixelated;
-        }
 
-        /* CONTROLES MOBILE TOUCH */
+        /* CONTROLOS TOUCH ESTILO GAMEPAD */
         #controles-mobile {
             display: none;
             position: absolute;
-            bottom: 6px;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 140px;
+            height: 100%;
             pointer-events: none;
-            justify-content: space-between;
-            padding: 0 16px;
-            z-index: 50;
+            z-index: 30;
         }
-        .dpad, .acoes {
-            display: flex;
-            gap: 8px;
-            align-items: center;
+        .dpad-container {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            width: 120px;
+            height: 120px;
+            pointer-events: auto;
+        }
+        .action-container {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            width: 140px;
+            height: 140px;
             pointer-events: auto;
         }
         .btn-touch {
-            background: rgba(44, 62, 80, 0.65);
-            border: 2px solid rgba(116, 185, 255, 0.7);
+            position: absolute;
+            background: rgba(44, 62, 80, 0.45);
+            border: 2px solid rgba(116, 185, 255, 0.6);
             color: #fff;
-            width: 48px;
-            height: 48px;
             border-radius: 50%;
-            font-weight: bold;
-            font-size: 16px;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            font-weight: bold;
+            font-size: 15px;
             user-select: none;
         }
         .btn-touch:active {
-            background: rgba(116, 185, 255, 0.8);
+            background: rgba(116, 185, 255, 0.7);
             transform: scale(0.92);
         }
+
+        /* POSIÇÕES D-PAD */
+        #btn-left  { width: 44px; height: 44px; bottom: 38px; left: 0; }
+        #btn-right { width: 44px; height: 44px; bottom: 38px; left: 74px; }
+        #btn-up    { width: 44px; height: 44px; top: 0; left: 37px; font-size: 12px; }
+
+        /* POSIÇÕES BOTÕES DE AÇÃO */
+        #btn-fire   { width: 50px; height: 50px; bottom: 10px; right: 68px; border-color: #e74c3c; font-size: 18px; }
+        #btn-jump   { width: 50px; height: 50px; bottom: 42px; right: 8px; border-color: #2ecc71; font-size: 11px; }
+        #btn-dash   { width: 40px; height: 40px; top: 12px; right: 68px; border-color: #a29bfe; font-size: 9px; }
+        #btn-escudo { width: 40px; height: 40px; top: 0; right: 14px; border-color: #00cec9; font-size: 9px; }
 
         /* TELA INICIAL */
         #tela-inicial {
@@ -161,95 +173,81 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            border: 3px solid #6c5ce7;
         }
         #tela-inicial h1 {
-            font-size: 26px;
+            font-size: 22px;
             color: #f1c40f;
-            text-shadow: 0 0 15px rgba(241, 196, 15, 0.7);
             margin-bottom: 6px;
-            text-align: center;
-        }
-        #tela-inicial p {
-            color: #a29bfe;
-            margin-bottom: 16px;
-            font-size: 13px;
             text-align: center;
         }
         .input-box {
             background-color: #0f071a;
             border: 2px solid #a29bfe;
             color: #f1c40f;
-            font-size: 16px;
-            padding: 8px 14px;
+            font-size: 15px;
+            padding: 8px 12px;
             border-radius: 6px;
             text-align: center;
-            width: 240px;
+            width: 220px;
             outline: none;
-            font-family: inherit;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .btn-iniciar {
             background: linear-gradient(135deg, #6c5ce7, #8e44ad);
             color: #fff;
             border: 2px solid #f1c40f;
-            padding: 10px 28px;
-            font-size: 15px;
+            padding: 10px 24px;
+            font-size: 14px;
             font-weight: bold;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
-            font-family: inherit;
         }
     </style>
 </head>
 <body>
 
-    <div id="area-canvas">
+    <div id="game-wrapper">
         <!-- TELA INICIAL -->
         <div id="tela-inicial">
             <h1>AS 100 CÂMARAS DO SUPREMO</h1>
-            <p>Nomeie o seu Soberano para despertar o trono:</p>
             <input type="text" id="input-nome" class="input-box" value="Ainz Ooal Gown" maxlength="18">
-            <button class="btn-iniciar" onclick="iniciarAventura()">DESPERTAR</button>
+            <button class="btn-iniciar" onclick="iniciarAventura()">INICIAR AVENTURA</button>
         </div>
 
         <canvas id="jogoCanvas" width="960" height="576"></canvas>
 
-        <!-- CONTROLES MOBILE -->
+        <!-- HUD INTEGRADO -->
+        <div id="hud">
+            <div class="hud-left">
+                <span class="hud-pill" id="hud-nome" style="color: #f1c40f; font-weight: bold;">Soberano</span>
+                <div class="barra-fundo">
+                    <div class="barra-hp" id="hp-preenchimento"></div>
+                    <div class="barra-texto" id="hp-texto">100 / 100</div>
+                </div>
+                <span class="hud-pill" id="hud-nivel" style="color: #9b59b6;">Nv. 1</span>
+            </div>
+            <div class="hud-right">
+                <span class="hud-pill" id="hud-geos" style="color: #f1c40f;">Geo: 0</span>
+                <span class="hud-pill" id="hud-fase" style="color: #74b9ff;">1/100</span>
+                <button class="btn-ui" onclick="alternarStatus()">📊</button>
+                <button class="btn-ui" id="btn-pause" onclick="alternarPause()">⏸️</button>
+            </div>
+        </div>
+
+        <!-- CONTROLOS VIRTUAIS MOBILE -->
         <div id="controles-mobile">
-            <div class="dpad">
+            <div class="dpad-container">
                 <div class="btn-touch" id="btn-left">◀</div>
                 <div class="btn-touch" id="btn-up">▲</div>
                 <div class="btn-touch" id="btn-right">▶</div>
             </div>
-            <div class="acoes">
-                <div class="btn-touch" id="btn-dash" style="border-color:#a29bfe; font-size: 11px;">DASH</div>
-                <div class="btn-touch" id="btn-escudo" style="border-color:#00cec9; font-size: 11px;">BAR</div>
-                <div class="btn-touch" id="btn-jump" style="border-color:#2ecc71;">▲ P</div>
-                <div class="btn-touch" id="btn-fire" style="border-color:#e74c3c;">🔥</div>
+            <div class="action-container">
+                <div class="btn-touch" id="btn-dash">DASH</div>
+                <div class="btn-touch" id="btn-escudo">BAR</div>
+                <div class="btn-touch" id="btn-jump">PULO</div>
+                <div class="btn-touch" id="btn-fire">🔥</div>
             </div>
         </div>
-    </div>
-
-    <!-- HUD SUPERIOR -->
-    <div id="hud">
-        <div class="hud-item" id="hud-nome" style="color: #f1c40f; font-weight: bold;">Soberano</div>
-        <div class="barra-container">
-            <div class="barra-fundo">
-                <div class="barra-hp" id="hp-preenchimento"></div>
-                <div class="barra-texto" id="hp-texto">100 / 100 HP</div>
-            </div>
-            <div class="barra-fundo" style="height: 6px;">
-                <div class="barra-xp" id="xp-preenchimento"></div>
-            </div>
-        </div>
-
-        <div class="hud-item" id="hud-nivel" style="color: #9b59b6; font-weight: bold;">Nv. 1</div>
-        <div class="hud-item" id="hud-geos" style="color: #f1c40f;">Geo: 0</div>
-        <div class="hud-item" id="hud-fase" style="color: #74b9ff;">Fase: 1 / 100</div>
-        <div class="hud-item" id="hud-escudo" style="color: #00cec9;">Escudo: Inativo</div>
-        <button class="btn-ui" onclick="alternarStatus()">📊 [C]</button>
-        <button class="btn-ui" id="btn-pause" onclick="alternarPause()">⏸️ [P]</button>
     </div>
 
     <script>
@@ -262,11 +260,9 @@
         const hudNome = document.getElementById("hud-nome");
         const hpPreenchimento = document.getElementById("hp-preenchimento");
         const hpTexto = document.getElementById("hp-texto");
-        const xpPreenchimento = document.getElementById("xp-preenchimento");
         const hudNivel = document.getElementById("hud-nivel");
         const hudGeos = document.getElementById("hud-geos");
         const hudFase = document.getElementById("hud-fase");
-        const hudEscudo = document.getElementById("hud-escudo");
         const btnPause = document.getElementById("btn-pause");
         const controlesMobile = document.getElementById("controles-mobile");
 
@@ -278,15 +274,6 @@
         let jogoIniciado = false;
         let jogoPausado = false;
         let menuStatusAberto = false;
-
-        const particulasAmbiente = Array.from({ length: 50 }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            raio: Math.random() * 1.5 + 0.5,
-            velY: -(Math.random() * 0.3 + 0.1),
-            velX: (Math.random() - 0.5) * 0.2,
-            opacidade: Math.random() * 0.6 + 0.2
-        }));
 
         const BIOMAS = [
             { nome: "Câmara Mortuária de Nazarick", fundo: "#07040a", bloco: "#180a21", borda: "#3c1352" },
@@ -344,7 +331,7 @@
 
             return {
                 numero: indice + 1,
-                nome: ehFaseBoss ? `[CHEFÃO] CÂMARA DO TRONO ${indice + 1}` : `${bioma.nome} - Andar ${indice + 1}`,
+                nome: ehFaseBoss ? `[BOSS] ANDAR ${indice + 1}` : `${bioma.nome} - Andar ${indice + 1}`,
                 fundo: bioma.fundo,
                 bloco: bioma.bloco,
                 bordaBloco: bioma.borda,
@@ -417,10 +404,10 @@
         function obterItensLoja(fase) {
             const multiplicadorTier = Math.floor(fase / 10) + 1;
             return [
-                { id: "cura", nome: `Frasco de Vitalidade T${multiplicadorTier}`, preco: 15 * multiplicadorTier, desc: `Restaura +${60 * multiplicadorTier} de HP instantaneamente.`, tipo: "cura", valor: 60 * multiplicadorTier },
-                { id: "cajado", nome: `Cajado dos Deuses Anciões T${multiplicadorTier}`, preco: 30 * multiplicadorTier, desc: `Aumenta o dano do cajado.`, tipo: "cajado", valor: Math.min(3, 1 + multiplicadorTier) },
-                { id: "escudo", nome: "Grimório da Barreira Cósmica", preco: 25, desc: "Permite usar [Q] para barreira de 35+ de absorção.", tipo: "escudo" },
-                { id: "bencao", nome: "Bênção Arcana", preco: 20 * multiplicadorTier, desc: "+3 Pontos de Inteligência.", tipo: "int", valor: 3 }
+                { id: "cura", nome: `Frasco Vital T${multiplicadorTier}`, preco: 15 * multiplicadorTier, desc: `+${60 * multiplicadorTier} HP.`, tipo: "cura", valor: 60 * multiplicadorTier },
+                { id: "cajado", nome: `Cajado Ancião T${multiplicadorTier}`, preco: 30 * multiplicadorTier, desc: `Aumenta o dano do cajado.`, tipo: "cajado", valor: Math.min(3, 1 + multiplicadorTier) },
+                { id: "escudo", nome: "Grimório de Barreira", preco: 25, desc: "Ativa [BAR] com 35+ absorção.", tipo: "escudo" },
+                { id: "bencao", nome: "Bênção Arcana", preco: 20 * multiplicadorTier, desc: "+3 Inteligência.", tipo: "int", valor: 3 }
             ];
         }
 
@@ -432,7 +419,7 @@
             hudNome.innerText = jogador.nome;
             telaInicial.style.display = "none";
             hud.style.display = "flex";
-            controlesMobile.style.display = "flex";
+            controlesMobile.style.display = "block";
             jogoIniciado = true;
             carregarFase(0);
         }
@@ -440,7 +427,7 @@
         function alternarPause() {
             if (!jogoIniciado || estadoJogo === "derrota" || estadoJogo === "vitoria" || estadoJogo === "loja") return;
             jogoPausado = !jogoPausado;
-            btnPause.innerText = jogoPausado ? "▶️ Retomar [P]" : "⏸️ Pause [P]";
+            btnPause.innerText = jogoPausado ? "▶️" : "⏸️";
         }
 
         function alternarStatus() {
@@ -457,12 +444,10 @@
                 alternarPause();
                 return;
             }
-
             if (key === "c" && estadoJogo === "jogando") {
                 alternarStatus();
                 return;
             }
-
             if (menuStatusAberto) {
                 if (key === "1") uparAtributo("int");
                 if (key === "2") uparAtributo("des");
@@ -471,17 +456,13 @@
                 if (key === "escape" || key === "c") menuStatusAberto = false;
                 return;
             }
-
             if (jogoPausado) return;
-
             if (e.key === "Tab") {
                 e.preventDefault();
                 executarDash();
                 return;
             }
-
             teclas[key] = true;
-
             if (key === "e" && lojaDisponivel) interagirLoja();
             if (estadoJogo === "loja") {
                 if (key === "1") comprarItem(0);
@@ -491,7 +472,6 @@
                 if (key === "escape") estadoJogo = "jogando";
                 return;
             }
-
             if (key === "q") ativarEscudo();
             if (e.code === "Space") executarPulo();
             if (key === "j") dispararMagiaFogo();
@@ -500,11 +480,11 @@
 
         window.addEventListener("keyup", (e) => teclas[e.key.toLowerCase()] = false);
 
-        // CONTROLES MOBILE TOUCH EVENT BINDINGS
+        // LIGAÇÃO TOUCH ROBUSTA
         function ligarBotaoTouch(id, onStart, onEnd) {
             const el = document.getElementById(id);
-            el.addEventListener("touchstart", (e) => { e.preventDefault(); onStart(); });
-            el.addEventListener("touchend", (e) => { e.preventDefault(); if (onEnd) onEnd(); });
+            el.addEventListener("touchstart", (e) => { e.preventDefault(); onStart(); }, { passive: false });
+            el.addEventListener("touchend", (e) => { e.preventDefault(); if (onEnd) onEnd(); }, { passive: false });
         }
 
         ligarBotaoTouch("btn-left", () => teclas["a"] = true, () => teclas["a"] = false);
@@ -752,70 +732,30 @@
             };
         }
 
-        // ============================================================
-        // GERADOR DE 4 CLASSES ÚNICAS DE BOSS COM COMPORTAMENTOS DISTINTOS
-        // ============================================================
         function gerarChefeFase(indiceFase) {
             const numeroBoss = Math.floor((indiceFase + 1) / 5);
-            const classeBoss = (numeroBoss % 4); // 0: Colosso, 1: Dragão Necrótico, 2: Arquidemônio, 3: Tirano Abissal
+            const classeBoss = (numeroBoss % 4);
             const hpBase = 1000 + (numeroBoss - 1) * 350;
 
             const bossConfig = [
-                {
-                    classe: "colosso",
-                    nome: `Colosso de Granito [Boss ${numeroBoss}]`,
-                    cor: "#57606f",
-                    largura: 68, altura: 76,
-                    temEscudo: (numeroBoss >= 3),
-                    escudo: (numeroBoss >= 3) ? 250 : 0
-                },
-                {
-                    classe: "dragao",
-                    nome: `Dragão Necrótico [Boss ${numeroBoss}]`,
-                    cor: "#16a085",
-                    largura: 74, altura: 70,
-                    temEscudo: true,
-                    escudo: 300 + numeroBoss * 40
-                },
-                {
-                    classe: "arquidemonio",
-                    nome: `Arquidemônio Rúnico [Boss ${numeroBoss}]`,
-                    cor: "#8e44ad",
-                    largura: 64, altura: 80,
-                    temEscudo: true,
-                    escudo: 400 + numeroBoss * 50
-                },
-                {
-                    classe: "tirano",
-                    nome: `Tirano do Abismo [Boss ${numeroBoss}]`,
-                    cor: "#c0392b",
-                    largura: 70, altura: 74,
-                    temEscudo: (numeroBoss >= 2),
-                    escudo: 280 + numeroBoss * 45
-                }
+                { classe: "colosso", nome: `Colosso de Granito [Boss ${numeroBoss}]`, cor: "#57606f", largura: 68, altura: 76, temEscudo: (numeroBoss >= 3), escudo: (numeroBoss >= 3) ? 250 : 0 },
+                { classe: "dragao", nome: `Dragão Necrótico [Boss ${numeroBoss}]`, cor: "#16a085", largura: 74, altura: 70, temEscudo: true, escudo: 300 + numeroBoss * 40 },
+                { classe: "arquidemonio", nome: `Arquidemônio Rúnico [Boss ${numeroBoss}]`, cor: "#8e44ad", largura: 64, altura: 80, temEscudo: true, escudo: 400 + numeroBoss * 50 },
+                { classe: "tirano", nome: `Tirano do Abismo [Boss ${numeroBoss}]`, cor: "#c0392b", largura: 70, altura: 74, temEscudo: (numeroBoss >= 2), escudo: 280 + numeroBoss * 45 }
             ][classeBoss];
 
             return {
-                x: 650,
-                y: 400,
-                largura: bossConfig.largura,
-                altura: bossConfig.altura,
-                vx: -0.9,
-                vy: 0,
-                tipo: "boss",
-                classeBoss: bossConfig.classe,
-                nome: bossConfig.nome,
-                cor: bossConfig.cor,
-                vida: hpBase,
-                vidaMax: hpBase,
+                x: 650, y: 400,
+                largura: bossConfig.largura, altura: bossConfig.altura,
+                vx: -0.9, vy: 0,
+                tipo: "boss", classeBoss: bossConfig.classe,
+                nome: bossConfig.nome, cor: bossConfig.cor,
+                vida: hpBase, vidaMax: hpBase,
                 temEscudo: bossConfig.temEscudo,
-                escudo: bossConfig.escudo,
-                escudoMax: bossConfig.escudo,
-                geo: 35 * numeroBoss,
-                xp: 450 * numeroBoss,
+                escudo: bossConfig.escudo, escudoMax: bossConfig.escudo,
+                geo: 35 * numeroBoss, xp: 450 * numeroBoss,
                 dano: 28 + numeroBoss * 4,
-                timerAcao: 0,
-                noChao: true
+                timerAcao: 0, noChao: true
             };
         }
 
@@ -872,7 +812,7 @@
 
             jogoPausado = false;
             menuStatusAberto = false;
-            btnPause.innerText = "⏸️ Pause [P]";
+            btnPause.innerText = "⏸️";
             estadoJogo = "jogando";
             carregarFase(0);
         }
@@ -880,17 +820,11 @@
         function atualizarHUD() {
             const pctHp = Math.max(0, (jogador.hp / jogador.hpMax)) * 100;
             hpPreenchimento.style.width = `${pctHp}%`;
-            hpTexto.innerText = `${Math.ceil(jogador.hp)} / ${jogador.hpMax} HP`;
-
-            const pctXp = Math.min(100, (jogador.xp / jogador.xpProximo) * 100);
-            xpPreenchimento.style.width = `${pctXp}%`;
+            hpTexto.innerText = `${Math.ceil(jogador.hp)}/${jogador.hpMax}`;
 
             hudNivel.innerText = `Nv. ${jogador.nivel}` + (jogador.pontosStatus > 0 ? ` (+${jogador.pontosStatus})` : "");
-            hudGeos.innerText = `Geo: ${geos}`;
-            hudFase.innerText = `Fase: ${faseAtual + 1} / 100 (${FASES[faseAtual].nome})`;
-
-            hudEscudo.innerText = jogador.escudoAtivo ? `Escudo: ${jogador.escudoAbsorcao} HP` : (jogador.temEscudo ? "Escudo: Pronto [Q]" : "Escudo: Inativo");
-            hudEscudo.style.color = jogador.escudoAtivo ? "#00cec9" : (jogador.temEscudo ? "#74b9ff" : "#636e72");
+            hudGeos.innerText = `G: ${geos}`;
+            hudFase.innerText = `${faseAtual + 1}/100`;
         }
 
         function tomarDano(dano) {
@@ -924,9 +858,6 @@
             }
         }
 
-        // ==========================================
-        // LOOP DE ATUALIZAÇÃO
-        // ==========================================
         function atualizar() {
             if (!jogoIniciado || estadoJogo !== "jogando" || jogoPausado || menuStatusAberto) return;
 
@@ -967,7 +898,6 @@
                 if (jogador.vy > 12) jogador.vy = 12;
             }
 
-            // Colisão Horizontal Jogador
             jogador.x += jogador.vx;
             if (jogador.vx > 0) {
                 if (obterTile(jogador.x + jogador.largura, jogador.y + 4) === 1 ||
@@ -985,7 +915,6 @@
                 }
             }
 
-            // Colisão Vertical Jogador
             jogador.y += jogador.vy;
             jogador.noChao = false;
 
@@ -1005,11 +934,10 @@
                 }
             }
 
-            // IA e Ataques Aleatórios dos Chefões e Monstros
+            // Inimigos e Bosses
             inimigos.forEach(ini => {
                 ini.vy += GRAVIDADE;
                 if (ini.vy > 10) ini.vy = 10;
-
                 ini.y += ini.vy;
                 ini.noChao = false;
 
@@ -1031,16 +959,13 @@
                 ini.timerAcao++;
 
                 if (ini.tipo === "boss") {
-                    // ATAQUES ALEATÓRIOS DO CHEFE BASEADO NO SEU ARQUÉTIPO
                     if (ini.timerAcao > 110) {
                         ini.timerAcao = 0;
-                        const sorteioAtaque = Math.random();
+                        const sorteio = Math.random();
 
                         if (ini.classeBoss === "colosso") {
-                            // 1. Colosso: Salto Sísmico ou Triplo Disparo
-                            if (sorteioAtaque < 0.5) {
+                            if (sorteio < 0.5) {
                                 ini.vy = -9.0;
-                                // Onda de choque no solo
                                 projeteisInimigo.push({ x: ini.x - 20, y: ini.y + ini.altura - 10, vx: -5, vy: 0, raio: 8, dano: ini.dano, ativo: true });
                                 projeteisInimigo.push({ x: ini.x + ini.largura + 20, y: ini.y + ini.altura - 10, vx: 5, vy: 0, raio: 8, dano: ini.dano, ativo: true });
                             } else {
@@ -1050,8 +975,7 @@
                                 }
                             }
                         } else if (ini.classeBoss === "dragao") {
-                            // 2. Dragão: Chuva de Meteoros ou Rajada Esmeralda
-                            if (sorteioAtaque < 0.55) {
+                            if (sorteio < 0.55) {
                                 for (let m = 0; m < 4; m++) {
                                     projeteisInimigo.push({ x: jogador.x + (Math.random() - 0.5) * 160, y: 30, vx: 0, vy: 4.8, raio: 8, dano: ini.dano + 4, ativo: true });
                                 }
@@ -1060,13 +984,11 @@
                                 projeteisInimigo.push({ x: ini.x + (dir > 0 ? ini.largura : 0), y: ini.y + 25, vx: dir * 6.5, vy: 0, raio: 12, dano: ini.dano + 6, ativo: true });
                             }
                         } else if (ini.classeBoss === "arquidemonio") {
-                            // 3. Arquidemônio: Anel de 8 Projéteis 360 Graus
                             for (let ang = 0; ang < Math.PI * 2; ang += Math.PI / 4) {
                                 projeteisInimigo.push({ x: ini.x + ini.largura / 2, y: ini.y + ini.altura / 2, vx: Math.cos(ang) * 4.2, vy: Math.sin(ang) * 4.2, raio: 6, dano: ini.dano, ativo: true });
                             }
                         } else if (ini.classeBoss === "tirano") {
-                            // 4. Tirano: Investida em Arrancada ou Orbe Teleguiada
-                            if (sorteioAtaque < 0.5) {
+                            if (sorteio < 0.5) {
                                 ini.vx = (jogador.x > ini.x ? 1 : -1) * 4.5;
                             } else {
                                 const dx = jogador.x - ini.x;
@@ -1088,21 +1010,11 @@
                 if (colideRetangulos(jogador, ini)) tomarDano(ini.dano);
             });
 
-            // Projéteis Jogador
+            // Projéteis
             projeteisFogo.forEach(p => {
                 p.x += p.vx;
                 p.y += p.vy;
                 p.tempoVida--;
-
-                particulasFogo.push({
-                    x: p.x + p.largura / 2,
-                    y: p.y + p.altura / 2,
-                    vx: -p.vx * 0.15 + (Math.random() - 0.5),
-                    vy: -p.vy * 0.15 + (Math.random() - 0.5),
-                    raio: Math.random() * 2.5 + 1,
-                    vida: 10,
-                    cor: p.nivelCajado === 3 ? "#e056fd" : "#fdcb6e"
-                });
 
                 if (obterTile(p.x + p.largura / 2, p.y + p.altura / 2) === 1 || p.tempoVida <= 0) {
                     p.ativo = false;
@@ -1144,13 +1056,10 @@
             projeteisFogo = projeteisFogo.filter(p => p.ativo);
             inimigos = inimigos.filter(ini => ini.vida > 0);
 
-            // Projéteis Inimigos
             projeteisInimigo.forEach(pv => {
                 pv.x += pv.vx;
                 pv.y += pv.vy;
-
                 if (obterTile(pv.x, pv.y) === 1) pv.ativo = false;
-
                 if (pv.ativo && colideRetangulos({ x: pv.x - pv.raio, y: pv.y - pv.raio, largura: pv.raio * 2, altura: pv.raio * 2 }, jogador)) {
                     pv.ativo = false;
                     tomarDano(pv.dano);
@@ -1158,7 +1067,6 @@
             });
             projeteisInimigo = projeteisInimigo.filter(pv => pv.ativo);
 
-            // Portal
             const centroX = jogador.x + jogador.largura / 2;
             const centroY = jogador.y + jogador.altura / 2;
             if (obterTile(centroX, centroY) === 9 && inimigos.length === 0) {
@@ -1169,43 +1077,20 @@
                 }
             }
 
-            particulasFogo.forEach(pf => {
-                pf.x += pf.vx;
-                pf.y += pf.vy;
-                pf.vida--;
-            });
+            particulasFogo.forEach(pf => { pf.x += pf.vx; pf.y += pf.vy; pf.vida--; });
             particulasFogo = particulasFogo.filter(pf => pf.vida > 0);
             rastrosDash.forEach(r => r.vida--);
             rastrosDash = rastrosDash.filter(r => r.vida > 0);
-
-            particulasAmbiente.forEach(p => {
-                p.y += p.velY;
-                p.x += p.velX;
-                if (p.y < 0) p.y = canvas.height;
-                if (p.x < 0) p.x = canvas.width;
-                if (p.x > canvas.width) p.x = 0;
-            });
         }
 
-        // ==========================================
-        // RENDERIZAÇÃO
-        // ==========================================
         function desenhar() {
             if (!jogoIniciado) return;
 
             const fase = FASES[faseAtual];
-
             ctx.fillStyle = fase.fundo;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            particulasAmbiente.forEach(p => {
-                ctx.fillStyle = `rgba(180, 215, 255, ${p.opacidade})`;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.raio, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Mapa de Blocos
+            // Blocos
             for (let l = 0; l < LINHAS; l++) {
                 for (let c = 0; c < COLUNAS; c++) {
                     const tipo = fase.mapa[l][c];
@@ -1230,7 +1115,7 @@
                 }
             }
 
-            // Loja do Mercador Pós-Chefe
+            // Loja pós-chefe
             if (lojaDisponivel) {
                 ctx.fillStyle = "#2c3e50";
                 ctx.fillRect(mercador.x, mercador.y + 10, mercador.largura, mercador.altura - 10);
@@ -1239,13 +1124,11 @@
                 ctx.arc(mercador.x + mercador.largura / 2, mercador.y + 10, 14, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.fillStyle = "#f1c40f";
-                ctx.fillRect(mercador.x + 8, mercador.y + 8, 4, 3);
-                ctx.fillRect(mercador.x + 20, mercador.y + 8, 4, 3);
                 ctx.font = "bold 11px sans-serif";
-                ctx.fillText("BAZAR DO CHEFE [E]", mercador.x - 14, mercador.y - 12);
+                ctx.fillText("LOJA [E]", mercador.x - 4, mercador.y - 12);
             }
 
-            // DESENHO DOS CHEFÕES COM SILHUETAS DIFERENCIADAS
+            // Inimigos
             inimigos.forEach(ini => {
                 const ix = ini.x;
                 const iy = ini.y;
@@ -1255,42 +1138,17 @@
                     ctx.fillRect(ix + 6, iy + 14, ini.largura - 12, ini.altura - 14);
 
                     if (ini.classeBoss === "colosso") {
-                        // Colosso: Placas de pedra cinzentas e cristais nos ombros
                         ctx.fillStyle = "#2f3542";
                         ctx.fillRect(ix, iy + 20, 14, 16);
                         ctx.fillRect(ix + ini.largura - 14, iy + 20, 14, 16);
-                        ctx.fillStyle = "#f1c40f";
-                        ctx.fillRect(ix + 18, iy + 18, 6, 6);
-                        ctx.fillRect(ix + ini.largura - 24, iy + 18, 6, 6);
                     } else if (ini.classeBoss === "dragao") {
-                        // Dragão Necrótico: Asas esmeralda e crânio réptil
                         ctx.fillStyle = "#1abc9c";
                         ctx.beginPath();
-                        ctx.moveTo(ix, iy + 10); ctx.lineTo(ix - 24, iy - 20); ctx.lineTo(ix + 10, iy + 30);
-                        ctx.fill();
+                        ctx.moveTo(ix, iy + 10); ctx.lineTo(ix - 24, iy - 20); ctx.lineTo(ix + 10, iy + 30); ctx.fill();
                         ctx.beginPath();
-                        ctx.moveTo(ix + ini.largura, iy + 10); ctx.lineTo(ix + ini.largura + 24, iy - 20); ctx.lineTo(ix + ini.largura - 10, iy + 30);
-                        ctx.fill();
-                    } else if (ini.classeBoss === "arquidemonio") {
-                        // Arquidemônio: Chifres duplos e manto escuro
-                        ctx.fillStyle = "#2c1038";
-                        ctx.fillRect(ix - 4, iy + 24, ini.largura + 8, ini.altura - 24);
-                        ctx.fillStyle = "#e056fd";
-                        ctx.fillRect(ix + 16, iy + 16, 7, 7);
-                        ctx.fillRect(ix + ini.largura - 23, iy + 16, 7, 7);
-                    } else if (ini.classeBoss === "tirano") {
-                        // Tirano Abissal: Olhos múltiplos rubros e carapaça
-                        ctx.fillStyle = "#74121d";
-                        ctx.fillRect(ix - 5, iy + 12, 10, 14);
-                        ctx.fillRect(ix + ini.largura - 5, iy + 12, 10, 14);
-                        ctx.fillStyle = "#ff4757";
-                        ctx.fillRect(ix + 14, iy + 14, 6, 6);
-                        ctx.fillRect(ix + 24, iy + 14, 6, 6);
-                        ctx.fillRect(ix + ini.largura - 30, iy + 14, 6, 6);
-                        ctx.fillRect(ix + ini.largura - 20, iy + 14, 6, 6);
+                        ctx.moveTo(ix + ini.largura, iy + 10); ctx.lineTo(ix + ini.largura + 24, iy - 20); ctx.lineTo(ix + ini.largura - 10, iy + 30); ctx.fill();
                     }
 
-                    // Escudo Rúnico do Boss
                     if (ini.temEscudo && ini.escudo > 0) {
                         ctx.save();
                         ctx.strokeStyle = "rgba(116, 185, 255, 0.9)";
@@ -1299,7 +1157,6 @@
                         ctx.restore();
                     }
 
-                    // Barra de Vida do Boss
                     ctx.fillStyle = "#1e272e";
                     ctx.fillRect(ix - 10, iy - 16, ini.largura + 20, 8);
                     ctx.fillStyle = "#e74c3c";
@@ -1316,29 +1173,12 @@
                     ctx.beginPath();
                     ctx.ellipse(ix + ini.largura / 2, iy + ini.altura / 2, ini.largura / 2, ini.altura / 2, 0, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.fillStyle = "#fff";
-                    ctx.beginPath();
-                    ctx.arc(ix + 6, iy + 6, 2, 0, Math.PI * 2);
-                    ctx.fill();
                 } else if (ini.tipo === "urso") {
-                    ctx.fillStyle = "#2c1810";
-                    ctx.fillRect(ix - 1, iy - 1, ini.largura + 2, ini.altura + 2);
-                    ctx.fillStyle = "#8a583e";
-                    ctx.fillRect(ix + 4, iy - 2, 10, 10);
-                    ctx.fillRect(ix + ini.largura - 14, iy - 2, 10, 10);
-                    ctx.fillStyle = "#d3a89e";
-                    ctx.fillRect(ix + 6, iy, 6, 6);
-                    ctx.fillRect(ix + ini.largura - 12, iy, 6, 6);
                     ctx.fillStyle = "#8a583e";
                     ctx.fillRect(ix + 5, iy + 4, ini.largura - 10, 24);
                     ctx.fillStyle = "#e74c3c";
                     ctx.fillRect(ix + 9, iy + 9, 8, 6);
                     ctx.fillRect(ix + ini.largura - 17, iy + 9, 8, 6);
-                    ctx.fillStyle = "#5c1d1d";
-                    ctx.fillRect(ix + 10, iy + 21, ini.largura - 20, 6);
-                    ctx.fillStyle = "#fff";
-                    ctx.fillRect(ix + 12, iy + 21, 3, 3);
-                    ctx.fillRect(ix + ini.largura - 15, iy + 21, 3, 3);
                 } else {
                     ctx.fillStyle = "#27ae60";
                     ctx.fillRect(ix + 4, iy + 6, ini.largura - 8, ini.altura - 6);
@@ -1355,12 +1195,9 @@
             // Projéteis Inimigos
             projeteisInimigo.forEach(pv => {
                 ctx.fillStyle = "#e74c3c";
-                ctx.shadowColor = "#e74c3c";
-                ctx.shadowBlur = 8;
                 ctx.beginPath();
                 ctx.arc(pv.x, pv.y, pv.raio, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 0;
             });
 
             // Personagem Ainz Ooal Gown
@@ -1379,56 +1216,31 @@
                 ctx.closePath();
                 ctx.fill();
 
-                ctx.fillStyle = "#2d1645";
-                ctx.beginPath();
-                ctx.moveTo(jx + 4, jy + 18); ctx.lineTo(jx + jw - 4, jy + 18);
-                ctx.lineTo(jx + jw - 2, jy + jh); ctx.lineTo(jx + 2, jy + jh);
-                ctx.closePath();
-                ctx.fill();
-
                 ctx.fillStyle = "#ded8c8";
                 ctx.fillRect(jx + jw / 2 - 2, jy + 14, 4, 12);
                 ctx.fillRect(jx + jw / 2 - 7, jy + 16, 14, 2);
-                ctx.fillRect(jx + jw / 2 - 6, jy + 20, 12, 2);
 
-                const pulsoCoracao = Math.sin(Date.now() / 150) * 1.2;
                 ctx.fillStyle = "#c0392b";
                 ctx.beginPath();
-                ctx.arc(jx + jw / 2, jy + 22, 3.5 + pulsoCoracao, 0, Math.PI * 2);
+                ctx.arc(jx + jw / 2, jy + 22, 3.5, 0, Math.PI * 2);
                 ctx.fill();
 
                 ctx.fillStyle = "#b8b2a5";
                 ctx.beginPath(); ctx.arc(jx - 2, jy + 14, 6, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(jx + jw + 2, jy + 14, 6, 0, Math.PI * 2); ctx.fill();
 
-                ctx.fillStyle = "#e74c3c";
-                ctx.beginPath(); ctx.arc(jx - 2, jy + 13, 4, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(jx + jw + 2, jy + 13, 4, 0, Math.PI * 2); ctx.fill();
-
                 ctx.fillStyle = "#f5f6fa";
                 ctx.beginPath(); ctx.ellipse(jx + jw / 2, jy + 8, 7, 8, 0, 0, Math.PI * 2); ctx.fill();
                 ctx.fillRect(jx + jw / 2 - 3, jy + 12, 6, 4);
 
-                ctx.fillStyle = "#0a0305";
-                const olhoX1 = olhandoDir ? jx + jw / 2 : jx + jw / 2 - 5;
-                const olhoX2 = olhandoDir ? jx + jw / 2 + 3 : jx + jw / 2 - 2;
-                ctx.fillRect(olhoX1, jy + 7, 3, 3);
-                ctx.fillRect(olhoX2, jy + 7, 3, 3);
                 ctx.fillStyle = "#ff0033";
-                ctx.fillRect(olhoX1 + 1, jy + 8, 1.5, 1.5);
-                ctx.fillRect(olhoX2 + 1, jy + 8, 1.5, 1.5);
+                ctx.fillRect(jx + (olhandoDir ? jw / 2 + 1 : jw / 2 - 4), jy + 8, 2, 2);
 
                 let cajadoX = mirandoCima ? jx + jw / 2 - 2 : (olhandoDir ? jx + jw + 6 : jx - 10);
                 let cajadoY = mirandoCima ? jy - 18 : jy + 2;
 
                 ctx.fillStyle = jogador.cajadoNivel === 3 ? "#f39c12" : (jogador.cajadoNivel === 2 ? "#7f8c8d" : "#5d4037");
                 ctx.fillRect(cajadoX, cajadoY, 4, 32);
-
-                const corGema = jogador.cajadoNivel === 3 ? "#9b59b6" : (jogador.cajadoNivel === 2 ? "#e74c3c" : "#e67e22");
-                ctx.fillStyle = corGema;
-                ctx.beginPath();
-                ctx.arc(cajadoX + 2, cajadoY, 5, 0, Math.PI * 2);
-                ctx.fill();
 
                 if (jogador.escudoAtivo) {
                     ctx.save();
@@ -1441,143 +1253,103 @@
                 }
             }
 
-            // Projéteis Jogador
+            // Projéteis
             projeteisFogo.forEach(p => {
                 ctx.save();
                 ctx.fillStyle = p.nivelCajado === 3 ? "#e056fd" : (p.nivelCajado === 2 ? "#ff7675" : "#ffeaa7");
-                ctx.shadowColor = p.nivelCajado === 3 ? "#be2edd" : "#d63031";
-                ctx.shadowBlur = 16;
                 ctx.beginPath();
                 ctx.ellipse(p.x + p.largura / 2, p.y + p.altura / 2, p.largura / 2, p.altura / 2, 0, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.restore();
             });
 
-            particulasFogo.forEach(pf => {
-                ctx.fillStyle = pf.cor;
-                ctx.beginPath();
-                ctx.arc(pf.x, pf.y, pf.raio, 0, Math.PI * 2);
-                ctx.fill();
-            });
-
-            // Menus Overlay (Status, Loja, Pause, Fim)
+            // Menu Status
             if (menuStatusAberto) {
                 ctx.fillStyle = "rgba(4, 5, 10, 0.95)";
-                ctx.fillRect(160, 60, canvas.width - 320, canvas.height - 120);
+                ctx.fillRect(160, 50, canvas.width - 320, canvas.height - 100);
                 ctx.strokeStyle = "#9b59b6";
                 ctx.lineWidth = 2;
-                ctx.strokeRect(160, 60, canvas.width - 320, canvas.height - 120);
+                ctx.strokeRect(160, 50, canvas.width - 320, canvas.height - 100);
 
                 ctx.fillStyle = "#f1c40f";
-                ctx.font = "bold 20px 'Cinzel', serif";
+                ctx.font = "bold 18px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`STATUS: ${jogador.nome.toUpperCase()}`, canvas.width / 2, 105);
+                ctx.fillText(`STATUS: ${jogador.nome.toUpperCase()}`, canvas.width / 2, 85);
 
-                ctx.font = "13px sans-serif";
+                ctx.font = "12px sans-serif";
                 ctx.fillStyle = "#dfe6e9";
-                ctx.fillText(`Nível: ${jogador.nivel}  |  Pontos: ${jogador.pontosStatus}`, canvas.width / 2, 132);
+                ctx.fillText(`Pontos: ${jogador.pontosStatus}`, canvas.width / 2, 110);
 
                 const atributos = [
-                    { nome: "Inteligência (INT)", valor: jogador.inteligencia, desc: `+${Math.floor(jogador.inteligencia * 2.3)} Dano`, key: "1" },
-                    { nome: "Destreza (DES)", valor: jogador.destreza, desc: `+${Math.floor(jogador.destreza * 0.7)} Redução`, key: "2" },
-                    { nome: "Vitalidade (VIT)", valor: jogador.vitalidade, desc: `+${(jogador.vitalidade - 5) * 10} HP Máx`, key: "3" },
-                    { nome: "Agilidade (AGI)", valor: jogador.agilidade, desc: `Recarga rápida`, key: "4" }
+                    { nome: "INT", valor: jogador.inteligencia, key: "1" },
+                    { nome: "DES", valor: jogador.destreza, key: "2" },
+                    { nome: "VIT", valor: jogador.vitalidade, key: "3" },
+                    { nome: "AGI", valor: jogador.agilidade, key: "4" }
                 ];
 
                 atributos.forEach((attr, idx) => {
-                    const yPos = 165 + idx * 60;
+                    const yPos = 135 + idx * 50;
                     ctx.fillStyle = "#1e1329";
-                    ctx.fillRect(200, yPos, canvas.width - 400, 48);
+                    ctx.fillRect(200, yPos, canvas.width - 400, 40);
+
                     ctx.textAlign = "left";
                     ctx.fillStyle = "#f5f6fa";
-                    ctx.font = "bold 14px sans-serif";
-                    ctx.fillText(`[${attr.key}] ${attr.nome}: ${attr.valor}`, 220, yPos + 22);
-                    ctx.font = "11px sans-serif";
-                    ctx.fillStyle = "#a29bfe";
-                    ctx.fillText(attr.desc, 220, yPos + 38);
+                    ctx.font = "bold 13px sans-serif";
+                    ctx.fillText(`[${attr.key}] ${attr.nome}: ${attr.valor}`, 220, yPos + 25);
+
                     ctx.textAlign = "right";
                     ctx.fillStyle = jogador.pontosStatus > 0 ? "#2ecc71" : "#7f8c8d";
-                    ctx.font = "bold 13px sans-serif";
-                    ctx.fillText(jogador.pontosStatus > 0 ? "+ UPAR" : "—", canvas.width - 220, yPos + 30);
+                    ctx.fillText(jogador.pontosStatus > 0 ? "+ UPAR" : "—", canvas.width - 220, yPos + 25);
                 });
 
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#74b9ff";
-                ctx.font = "12px sans-serif";
-                ctx.fillText("Toque [1-4] ou clique para subir atributo | Fechar [C]", canvas.width / 2, canvas.height - 80);
+                ctx.fillText("Toque [1-4] ou clique para subir | [C] Fechar", canvas.width / 2, canvas.height - 70);
             }
 
+            // Loja Overlay
             if (estadoJogo === "loja") {
                 ctx.fillStyle = "rgba(5, 7, 12, 0.95)";
                 ctx.fillRect(120, 50, canvas.width - 240, canvas.height - 100);
                 ctx.strokeStyle = "#f1c40f";
-                ctx.lineWidth = 2;
                 ctx.strokeRect(120, 50, canvas.width - 240, canvas.height - 100);
 
                 ctx.fillStyle = "#f1c40f";
-                ctx.font = "bold 20px 'Cinzel', serif";
+                ctx.font = "bold 18px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`BAZAR DO CHEFE - ANDAR ${faseAtual + 1}`, canvas.width / 2, 95);
-
-                ctx.font = "14px sans-serif";
-                ctx.fillStyle = "#dfe6e9";
-                ctx.fillText(`Geos: ${geos} G`, canvas.width / 2, 122);
+                ctx.fillText(`BAZAR PÓS-CHEFE`, canvas.width / 2, 85);
 
                 itensLojaAtuais.forEach((item, idx) => {
-                    const yPos = 145 + idx * 72;
+                    const yPos = 115 + idx * 60;
                     ctx.fillStyle = item.comprado ? "#636e72" : "#1e272e";
-                    ctx.fillRect(160, yPos, canvas.width - 320, 58);
+                    ctx.fillRect(160, yPos, canvas.width - 320, 50);
+
                     ctx.textAlign = "left";
                     ctx.fillStyle = item.comprado ? "#b2bec3" : "#ffeaa7";
-                    ctx.font = "bold 14px sans-serif";
-                    ctx.fillText(`[${idx + 1}] ${item.nome}`, 180, yPos + 22);
-                    ctx.font = "11px sans-serif";
-                    ctx.fillStyle = "#a4b0be";
-                    ctx.fillText(item.desc, 180, yPos + 42);
-                    ctx.textAlign = "right";
                     ctx.font = "bold 13px sans-serif";
+                    ctx.fillText(`[${idx + 1}] ${item.nome}`, 180, yPos + 22);
+
+                    ctx.textAlign = "right";
                     ctx.fillStyle = item.comprado ? "#00cec9" : "#f1c40f";
-                    ctx.fillText(item.comprado ? "ADQUIRIDO" : `${item.preco} GEO`, canvas.width - 185, yPos + 32);
+                    ctx.fillText(item.comprado ? "ADQUIRIDO" : `${item.preco} GEO`, canvas.width - 185, yPos + 30);
                 });
 
                 ctx.textAlign = "center";
                 ctx.fillStyle = "#74b9ff";
-                ctx.font = "12px sans-serif";
-                ctx.fillText("Toque [1-4] para comprar | Fechar [E]", canvas.width / 2, canvas.height - 75);
+                ctx.fillText("Toque [1-4] para comprar | Fechar [E]", canvas.width / 2, canvas.height - 70);
             }
 
-            if (jogoPausado && estadoJogo === "jogando") {
-                ctx.fillStyle = "rgba(4, 7, 12, 0.75)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#74b9ff";
-                ctx.font = "bold 32px 'Cinzel', serif";
-                ctx.textAlign = "center";
-                ctx.fillText("JOGO PAUSADO", canvas.width / 2, canvas.height / 2 - 15);
-                ctx.fillStyle = "#dfe6e9";
-                ctx.font = "14px sans-serif";
-                ctx.fillText("Toque em 'Retomar' para continuar.", canvas.width / 2, canvas.height / 2 + 25);
-            }
-
+            // Derrota
             if (estadoJogo === "derrota") {
                 ctx.fillStyle = "rgba(2, 4, 7, 0.88)";
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = "#ff7675";
-                ctx.font = "26px 'Cinzel', serif";
+                ctx.font = "bold 24px sans-serif";
                 ctx.textAlign = "center";
-                ctx.fillText(`${jogador.nome.toUpperCase()} FOI DERRUBADO`, canvas.width / 2, canvas.height / 2 - 10);
-                ctx.font = "14px sans-serif";
+                ctx.fillText(`O SOBERANO CAIU`, canvas.width / 2, canvas.height / 2 - 10);
+                ctx.font = "13px sans-serif";
                 ctx.fillStyle = "#718093";
-                ctx.fillText("Pressione 'R' para recomeçar a jornada.", canvas.width / 2, canvas.height / 2 + 30);
-            } else if (estadoJogo === "vitoria") {
-                ctx.fillStyle = "rgba(2, 4, 7, 0.92)";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = "#f1c40f";
-                ctx.font = "26px 'Cinzel', serif";
-                ctx.textAlign = "center";
-                ctx.fillText(`GLÓRIA A ${jogador.nome.toUpperCase()}! 100 FASES CONQUISTADAS!`, canvas.width / 2, canvas.height / 2 - 10);
-                ctx.fillStyle = "#9b59b6";
-                ctx.font = "16px sans-serif";
-                ctx.fillText(`Nível Final: ${jogador.nivel}  |  Total Geos: ${geos}`, canvas.width / 2, canvas.height / 2 + 30);
+                ctx.fillText("Pressione 'R' para retornar ao Trono.", canvas.width / 2, canvas.height / 2 + 25);
             }
         }
 
